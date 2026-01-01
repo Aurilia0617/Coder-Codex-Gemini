@@ -1,0 +1,37 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "glm-codex-mcp"
+version = "0.1.0"
+description = "Claude + GLM + Codex 三方协作 MCP 服务器"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "mcp[cli]>=1.20.0",
+    "pydantic>=2.0",
+]
+authors = [
+    { name = "GLM-CODEX-MCP Contributors" },
+]
+license = { text = "MIT" }
+keywords = ["mcp", "fastmcp", "glm", "codex", "claude"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/your-username/glm-codex-mcp"
+
+[project.scripts]
+glm-codex-mcp = "glm_codex_mcp.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/glm_codex_mcp"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/glm_codex_mcp", "README.md", "LICENSE"]
