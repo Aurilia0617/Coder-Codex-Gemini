@@ -7,6 +7,8 @@
 ![MCP](https://img.shields.io/badge/MCP-1.20.0+-green.svg)
 ![Status](https://img.shields.io/badge/status-beta-orange.svg)
 
+[English Docs](README_EN.md)
+
 **Claude (Opus) + GLM + Codex 三方协作 MCP 服务器**
 
 让 **Claude (Opus)** 作为架构师调度 **GLM** 执行代码任务、**Codex** 审核代码质量，<br>形成**自动化的三方协作闭环**。
