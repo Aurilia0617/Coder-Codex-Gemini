@@ -25,10 +25,16 @@ class CommandNotFoundError(Exception):
     pass
 
 
+class CommandTimeoutError(Exception):
+    """命令执行超时错误"""
+    pass
+
+
 def run_glm_command(
     cmd: list[str],
     env: dict[str, str],
     cwd: Path | None = None,
+    timeout: int = 300,
 ) -> Generator[str, None, None]:
     """执行 GLM 命令并流式返回输出
 
@@ -36,12 +42,14 @@ def run_glm_command(
         cmd: 命令和参数列表
         env: 环境变量字典
         cwd: 工作目录
+        timeout: 超时时间（秒），默认 300 秒（5 分钟）
 
     Yields:
         输出行
 
     Raises:
         CommandNotFoundError: claude CLI 未安装时抛出
+        CommandTimeoutError: 命令执行超时时抛出
     """
     # 查找 claude CLI 路径
     claude_path = shutil.which('claude')
@@ -104,12 +112,22 @@ def run_glm_command(
             if process.poll() is not None and not thread.is_alive():
                 break
 
+    timeout_error: CommandTimeoutError | None = None
     try:
-        process.wait(timeout=30)
+        process.wait(timeout=timeout)
     except subprocess.TimeoutExpired:
-        process.kill()
-        process.wait()
-    thread.join(timeout=5)
+        process.terminate()
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
+        timeout_error = CommandTimeoutError(f"glm 执行超时（{timeout}s），进程已终止。")
+    finally:
+        thread.join(timeout=5)
+
+    if timeout_error is not None:
+        raise timeout_error
 
     # 读取剩余输出
     while not output_queue.empty():
@@ -130,6 +148,7 @@ async def glm_tool(
     ] = "workspace-write",
     SESSION_ID: Annotated[str, "会话 ID，用于多轮对话"] = "",
     return_all_messages: Annotated[bool, "是否返回完整消息"] = False,
+    timeout: Annotated[int, "超时时间（秒），默认 300 秒（5 分钟）"] = 300,
 ) -> Dict[str, Any]:
     """执行 GLM 代码任务
 
@@ -188,7 +207,7 @@ async def glm_tool(
     session_id: Optional[str] = None
 
     try:
-        for line in run_glm_command(cmd, env, cd):
+        for line in run_glm_command(cmd, env, cd, timeout):
             try:
                 line_dict = json.loads(line.strip())
                 all_messages.append(line_dict)
@@ -224,6 +243,14 @@ async def glm_tool(
         return {
             "success": False,
             "tool": "glm",
+            "error": str(e),
+        }
+
+    except CommandTimeoutError as e:
+        return {
+            "success": False,
+            "tool": "glm",
+            "error_type": "timeout",
             "error": str(e),
         }
 

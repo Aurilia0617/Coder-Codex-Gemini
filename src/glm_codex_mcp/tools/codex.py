@@ -24,17 +24,24 @@ class CommandNotFoundError(Exception):
     pass
 
 
-def run_codex_command(cmd: list[str]) -> Generator[str, None, None]:
+class CommandTimeoutError(Exception):
+    """命令执行超时错误"""
+    pass
+
+
+def run_codex_command(cmd: list[str], timeout: int = 300) -> Generator[str, None, None]:
     """执行 Codex 命令并流式返回输出
 
     Args:
         cmd: 命令和参数列表
+        timeout: 超时时间（秒），默认 300 秒（5 分钟）
 
     Yields:
         输出行
 
     Raises:
         CommandNotFoundError: codex CLI 未安装时抛出
+        CommandTimeoutError: 命令执行超时时抛出
     """
     codex_path = shutil.which('codex')
     if not codex_path:
@@ -92,9 +99,9 @@ def run_codex_command(cmd: list[str]) -> Generator[str, None, None]:
             if process.poll() is not None and not thread.is_alive():
                 break
 
-    # 等待进程自然退出，而不是强制 terminate
+    timeout_error: CommandTimeoutError | None = None
     try:
-        process.wait(timeout=5)
+        process.wait(timeout=timeout)
     except subprocess.TimeoutExpired:
         process.terminate()
         try:
@@ -102,7 +109,12 @@ def run_codex_command(cmd: list[str]) -> Generator[str, None, None]:
         except subprocess.TimeoutExpired:
             process.kill()
             process.wait()
-    thread.join(timeout=5)
+        timeout_error = CommandTimeoutError(f"codex 执行超时（{timeout}s），进程已终止。")
+    finally:
+        thread.join(timeout=timeout)
+
+    if timeout_error is not None:
+        raise timeout_error
 
     # 读取剩余输出
     while not output_queue.empty():
@@ -143,6 +155,10 @@ async def codex_tool(
         str,
         "从 ~/.codex/config.toml 加载的配置文件名称",
     ] = "",
+    timeout: Annotated[
+        int,
+        Field(description="超时时间（秒），默认 300 秒（5 分钟）"),
+    ] = 300,
 ) -> Dict[str, Any]:
     """执行 Codex 代码审核
 
@@ -195,7 +211,7 @@ async def codex_tool(
     thread_id: Optional[str] = None
 
     try:
-        for line in run_codex_command(cmd):
+        for line in run_codex_command(cmd, timeout=timeout):
             try:
                 line_dict = json.loads(line.strip())
                 all_messages.append(line_dict)
@@ -237,6 +253,14 @@ async def codex_tool(
         return {
             "success": False,
             "tool": "codex",
+            "error": str(e),
+        }
+
+    except CommandTimeoutError as e:
+        return {
+            "success": False,
+            "tool": "codex",
+            "error_type": "timeout",
             "error": str(e),
         }
 
