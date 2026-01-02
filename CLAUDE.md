@@ -88,8 +88,10 @@ GLM-CODEX-MCP/
 - `return_metrics=True`：在返回值中包含耗时、Prompt 长度等指标
 - `log_metrics=True`：将指标输出到 stderr（JSONL 格式）
 
-#### 防递归调用
-GLM 调用时使用 `--setting-sources ""` 禁用所有设置源加载（包括 CLAUDE.md），从根本上防止 GLM 误读指示导致递归调用自身。
+#### 命令行参数策略
+- **设置源**：`--setting-sources "project"` 仅加载项目级设置
+- **System Prompt**：`--append-system-prompt` 通过命令行参数追加角色指令
+- **对话 Prompt**：通过 stdin 传递（支持换行符，无长度限制）
 
 ### 配置方案
 

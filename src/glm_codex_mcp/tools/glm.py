@@ -160,7 +160,7 @@ def run_glm_command(
         cwd: 工作目录
         timeout: 空闲超时（秒），无输出超过此时间触发超时，默认 300 秒（5 分钟）
         max_duration: 总时长硬上限（秒），默认 1800 秒（30 分钟），0 表示无限制
-        prompt: 通过 stdin 传递的 prompt 内容
+        prompt: 通过 stdin 传递的对话 prompt
 
     Yields:
         输出行
@@ -194,13 +194,12 @@ def run_glm_command(
         cwd=cwd,
     )
 
-    # 通过 stdin 传递 prompt，然后关闭 stdin
+    # 通过 stdin 传递对话 prompt，然后关闭 stdin
     if process.stdin:
         try:
             if prompt:
                 process.stdin.write(prompt)
         except (BrokenPipeError, OSError):
-            # 子进程可能已退出，忽略写入错误
             pass
         finally:
             try:
@@ -351,18 +350,7 @@ def _build_error_detail(
 # GLM System Prompt
 # ============================================================================
 
-GLM_SYSTEM_PROMPT = """你是一个专注高效的代码执行助手。
-
-【SOLO 模式】当前处于 SOLO 模式，由你独立完成任务。
-
-【执行原则】
-- 直接执行任务，不闲聊、不反问需求
-- 遵循代码最佳实践，保持代码质量
-- 在任务范围内可自主决策实现细节
-
-【输出规范】
-- 仅输出任务结果与必要的改动说明
-- 如有代码改动可附 diff（内容较多时节选关键部分并说明）"""
+GLM_SYSTEM_PROMPT = "你是一个专注高效的代码执行助手。【执行原则】- 直接执行任务，不闲聊、不反问需求 - 遵循代码最佳实践，保持代码质量 - 在任务范围内可自主决策实现细节【输出规范】- 仅输出任务结果与必要的改动说明 - 如有代码改动可附 diff（内容较多时节选关键部分并说明）"
 
 
 # ============================================================================
@@ -420,25 +408,28 @@ async def glm_tool(
             result["metrics"] = metrics.to_dict()
         return result
 
-    # 构建命令
+    # 构建命令（按逻辑分层排序）
     cmd = [
         "claude",
-        "-p",  # print mode 标志
-        "--output-format", "json",
-        # 注意：不使用 --setting-sources，让 CLI 正常加载所有设置
-        # 递归风险通过 system-prompt 中的角色限定来防止
-        "--system-prompt", GLM_SYSTEM_PROMPT,
+        "-p",                                    # 1. 运行模式
+        "--output-format", "json",               # 2. 输出格式
+        "--setting-sources", "project",          # 3. 设置源（仅加载项目级设置）
     ]
 
-    # 添加权限参数
+    # 4. 安全策略
     if sandbox != "read-only":
         cmd.append("--dangerously-skip-permissions")
 
-    # 会话恢复
+    # 5. 全局设定（Prompt 注入）
+    cmd.extend(["--append-system-prompt", GLM_SYSTEM_PROMPT])
+
+    # 6. 动态变量（会话恢复）
     if SESSION_ID:
         cmd.extend(["-r", SESSION_ID])
 
-    # PROMPT 通过 stdin 传递，不再作为命令行参数
+    # 处理对话 PROMPT 中的换行符（确保跨平台兼容）
+    normalized_prompt = PROMPT.replace('\r\n', '\n').replace('\r', '\n')
+    # 对话 prompt 通过 stdin 传递，system prompt 通过 --append-system-prompt 命令行参数传递
 
     # 执行循环（支持重试）
     retries = 0
@@ -459,7 +450,7 @@ async def glm_tool(
         last_lines: list[str] = []
 
         try:
-            gen = run_glm_command(cmd, env, cd, timeout, max_duration, prompt=PROMPT)
+            gen = run_glm_command(cmd, env, cd, timeout, max_duration, prompt=normalized_prompt)
             try:
                 while True:
                     line = next(gen)
