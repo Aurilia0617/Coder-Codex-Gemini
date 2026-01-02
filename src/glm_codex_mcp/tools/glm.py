@@ -122,6 +122,13 @@ class MetricsCollector:
             "json_decode_errors": self.json_decode_errors,
         }
 
+    def format_duration(self) -> str:
+        """格式化耗时为 "xmxs" 格式"""
+        total_seconds = self.duration_ms // 1000
+        minutes = total_seconds // 60
+        seconds = total_seconds % 60
+        return f"{minutes}m{seconds}s"
+
     def log_to_stderr(self) -> None:
         """将指标输出到 stderr（JSONL 格式）"""
         metrics = self.to_dict()
@@ -365,7 +372,7 @@ async def glm_tool(
     ] = "workspace-write",
     SESSION_ID: Annotated[str, "会话 ID，用于多轮对话"] = "",
     return_all_messages: Annotated[bool, "是否返回完整消息"] = False,
-    return_metrics: Annotated[bool, "是否在返回值中包含指标数据"] = True,
+    return_metrics: Annotated[bool, "是否在返回值中包含指标数据"] = False,
     timeout: Annotated[int, "空闲超时（秒），无输出超过此时间触发超时，默认 300 秒"] = 300,
     max_duration: Annotated[int, "总时长硬上限（秒），默认 1800 秒（30 分钟），0 表示无限制"] = 1800,
     max_retries: Annotated[int, "最大重试次数，默认 0（不重试）"] = 0,
@@ -587,6 +594,7 @@ async def glm_tool(
             "tool": "glm",
             "SESSION_ID": session_id,
             "result": result_content,
+            "duration": metrics.format_duration(),
         }
     else:
         # 使用最后一次失败的错误信息
@@ -610,6 +618,7 @@ async def glm_tool(
                 max_duration_s=max_duration if error_kind == ErrorKind.TIMEOUT else None,
                 retries=retries,
             ),
+            "duration": metrics.format_duration(),
         }
 
     if return_all_messages:
