@@ -66,16 +66,22 @@ flowchart TB
     subgraph ToolLayer ["执行层"]
         Coder["🔨 Coder 工具<br><code>claude CLI → 可配置后端</code><br>sandbox: workspace-write"]
         Codex["⚖️ Codex 工具<br><code>codex CLI</code><br>sandbox: read-only"]
+        Gemini["🧠 Gemini 工具<br><code>gemini CLI</code><br>sandbox: workspace-write"]
     end
 
     User --> Claude
     Claude --> Prompt
-    Prompt -->|"coder(PROMPT, cd)"| MCP
+    Prompt -->|"coder / gemini"| MCP
+    
     MCP -->|"流式 JSON"| Coder
+    MCP -->|"流式 JSON"| Gemini
+    
     Coder -->|"SESSION_ID + result"| Review
+    Gemini -->|"SESSION_ID + result"| Review
 
-    Review -->|"需要审核"| MCP
+    Review -->|"需要审核 / 专家意见"| MCP
     MCP -->|"流式 JSON"| Codex
+    
     Codex -->|"SESSION_ID + 审核结论"| Review
 
     Review -->|"✅ 通过"| Done(["🎉 任务完成"])
@@ -90,11 +96,11 @@ flowchart TB
        ↓
 2. Claude 分析、拆解任务，构造精确 Prompt
        ↓
-3. 调用 coder 工具 → 后端模型执行代码生成/修改
+3. 调用 coder (或 gemini) 工具 → 执行代码生成/修改
        ↓
-4. Claude 审查结果，决定是否需要 Codex 审核
+4. Claude 审查结果，决定是否需要 Codex 审核或 Gemini 咨询
        ↓
-5. 调用 codex 工具 → Codex 独立 Code Review
+5. 调用 codex (或 gemini) 工具 → 独立 Code Review / 获取第二意见
        ↓
 6. 根据审核结论：通过 / 优化 / 重新执行
 ```
@@ -141,26 +147,37 @@ uv --version
 
 > **提示**：如果遇到 "命令不存在" 错误，请检查 PATH 配置是否正确。
 
-### 2. 安装 MCP 服务器
+### 2. 安装 MCP 服务器（推荐本地安装）
 
-**方式一：远程安装（推荐）**
+为了使用本项目的核心功能（Skills 工作流指导），**强烈推荐采用本地安装**方式。
+
+**第一步：获取代码**
 ```bash
-claude mcp add ccg -s user --transport stdio -- uvx --refresh --from git+https://github.com/FredericMN/Coder-Codex-Gemini.git ccg-mcp
+git clone https://github.com/FredericMN/Coder-Codex-Gemini.git
+cd Coder-Codex-Gemini
 ```
 
-**方式二：本地安装（开发调试）**
-
-如果已 clone 到本地：
+**第二步：安装依赖**
 ```bash
-# 进入项目目录
-cd /path/to/Coder-Codex-Gemini
-
-# 安装依赖
 uv sync
-
-# 注册 MCP 服务器（使用本地路径）
-claude mcp add ccg -s user --transport stdio -- uv run --directory /path/to/Coder-Codex-Gemini ccg-mcp
 ```
+
+**第三步：注册 MCP 服务器**
+```bash
+# 获取当前目录的绝对路径 (Windows)
+$pwd = Get-Location
+claude mcp add ccg -s user --transport stdio -- uv run --directory $pwd ccg-mcp
+
+# 获取当前目录的绝对路径 (macOS/Linux)
+claude mcp add ccg -s user --transport stdio -- uv run --directory $(pwd) ccg-mcp
+```
+
+> **备选方案：远程快速体验（无 Skills）**
+> 
+> 如果您不想下载代码，可以使用远程安装（但**无法使用 Skills** 工作流指导功能，体验会打折）：
+> ```bash
+> claude mcp add ccg -s user --transport stdio -- uvx --refresh --from git+https://github.com/FredericMN/Coder-Codex-Gemini.git ccg-mcp
+> ```
 
 **卸载 MCP 服务器**
 ```bash
