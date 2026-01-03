@@ -119,6 +119,15 @@ flowchart TB
 *   **Gemini CLI**（可选）: 如需使用 Gemini 工具 ([安装指南](https://github.com/google-gemini/gemini-cli))
 *   **Coder 后端 API Token**: 需自行配置，推荐使用 GLM-4.7 作为参考案例，从 [智谱 AI](https://open.bigmodel.cn) 获取。
 
+> **⚠️ 重要提示：费用与权限**
+> *   **工具授权**：`claude`、`codex` 和 `gemini` CLI 工具均需在本地完成登录授权。
+> *   **费用说明**：这些工具的使用通常涉及官方订阅费用或 API 使用费。
+>     *   **Claude Code**: 需要 Anthropic 账号及相应的计费设置。（或三方接入）
+>     *   **Codex CLI**: 需要 OpenAI 账号或 API 额度。
+>     *   **Gemini CLI**: 默认调用 `gemini-3-pro-preview` 模型（可能涉及 Google AI 订阅或 API 调用限制）。
+>     *   **Coder API**: 需自行承担所配置后端模型（如智谱 AI、DeepSeek 等）的 API 调用费用。
+> *   请在正式使用前确保所有工具已登录且账号资源充足。
+
 ### Windows 用户注意事项
 
 在 Windows 上使用 CCG-MCP，请确保以下 CLI 工具已正确添加到系统 PATH：

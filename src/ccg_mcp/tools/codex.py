@@ -48,6 +48,7 @@ class ErrorKind:
     IDLE_TIMEOUT = "idle_timeout"  # 空闲超时（无输出）
     COMMAND_NOT_FOUND = "command_not_found"
     UPSTREAM_ERROR = "upstream_error"
+    AUTH_REQUIRED = "auth_required"  # 需要登录认证
     JSON_DECODE = "json_decode"
     PROTOCOL_MISSING_SESSION = "protocol_missing_session"
     EMPTY_RESULT = "empty_result"
@@ -535,13 +536,42 @@ def _build_error_detail(
 # 可重试错误判断
 # ============================================================================
 
+def _is_auth_error(text: str) -> bool:
+    """检测是否为认证错误
+
+    检测以下特征字符串（不区分大小写）：
+    - 401
+    - unauthorized
+    - authentication failed
+    - token refresh failed
+    - login required
+    - not logged in
+    - invalid_grant
+    - credentials
+    """
+    text_lower = text.lower()
+    auth_keywords = [
+        "401",
+        "unauthorized",
+        "authentication failed",
+        "token refresh failed",
+        "login required",
+        "not logged in",
+        "invalid_grant",
+        "credentials",
+    ]
+    return any(keyword in text_lower for keyword in auth_keywords)
+
+
 def _is_retryable_error(error_kind: Optional[str], err_message: str) -> bool:
     """判断错误是否可以重试
 
     Codex 是只读操作，大部分错误都可以安全重试。
-    排除：命令不存在（需要用户干预）
+    排除：命令不存在（需要用户干预）、认证错误（需要用户登录）
     """
     if error_kind == ErrorKind.COMMAND_NOT_FOUND:
+        return False
+    if error_kind == ErrorKind.AUTH_REQUIRED:
         return False
     # 其他错误都可以重试
     return True
@@ -674,8 +704,12 @@ async def codex_tool(
                             # 错误处理：记录错误但不立即判断成功与否
                             if "fail" in line_dict.get("type", ""):
                                 had_error = True
-                                err_message += "\n\n[codex error] " + line_dict.get("error", {}).get("message", "")
+                                fail_msg = line_dict.get("error", {}).get("message", "")
+                                err_message += "\n\n[codex error] " + fail_msg
                                 error_kind = ErrorKind.UPSTREAM_ERROR
+                                # 检测是否为认证错误
+                                if _is_auth_error(fail_msg):
+                                    error_kind = ErrorKind.AUTH_REQUIRED
 
                             if "error" in line_dict.get("type", ""):
                                 error_msg = line_dict.get("message", "")
@@ -685,6 +719,9 @@ async def codex_tool(
                                     had_error = True
                                     err_message += "\n\n[codex error] " + error_msg
                                     error_kind = ErrorKind.UPSTREAM_ERROR
+                                    # 检测是否为认证错误
+                                    if _is_auth_error(error_msg):
+                                        error_kind = ErrorKind.AUTH_REQUIRED
 
                         except json.JSONDecodeError:
                             # JSON 解析失败记录但不影响成功判定

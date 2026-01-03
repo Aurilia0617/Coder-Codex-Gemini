@@ -113,6 +113,15 @@ Before starting, ensure you have installed the following tools:
 *   **Gemini CLI** (Optional): Required for Gemini tool ([Installation Guide](https://github.com/google-gemini/gemini-cli))
 *   **Coder Backend API Token**: User configuration required. GLM-4.7 is recommended as reference. Get token from [Zhipu AI](https://open.bigmodel.cn).
 
+> **⚠️ Important: Costs & Permissions**
+> *   **Authorization**: The `claude`, `codex`, and `gemini` CLI tools must be logged in locally.
+> *   **Cost Warning**: Using these tools typically involves subscription fees or API usage costs.
+>     *   **Claude Code**: Requires an Anthropic account with billing set up (or 3rd-party integration).
+>     *   **Codex CLI**: Requires an OpenAI account or API credits.
+>     *   **Gemini CLI**: Defaults to the `gemini-3-pro-preview` model (may involve Google AI subscription or API limits).
+>     *   **Coder API**: You are responsible for the API costs of the configured backend model (e.g., Zhipu AI, DeepSeek).
+> *   Please ensure all tools are authenticated and account resources are sufficient before use.
+
 ### 2. Install MCP Server
 
 **Option 1: Remote Installation (Recommended)**
