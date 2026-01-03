@@ -13,7 +13,7 @@
 
 Empower **Claude (Opus)** as the architect to orchestrate **GLM** for code execution tasks and **Codex** for code quality review,<br>forming an **automated tripartite collaboration loop**.
 
-[Quick Start](#quick-start) • [Core Features](#core-features) • [Architecture](#architecture) • [Tools Details](#tools-details)
+[Quick Start](#-quick-start) • [Core Features](#-core-features) • [Architecture](#-architecture) • [Tools Details](#️-tools-details)
 
 </div>
 
