@@ -79,7 +79,7 @@ write_step "Step 3: Registering MCP server..."
 # Try to remove existing ccg MCP server if it exists
 claude mcp remove ccg --scope user 2>/dev/null && write_warning "Removed existing ccg MCP server" || true
 
-if claude mcp add ccg --scope user --transport stdio -- uv run --directory "$SCRIPT_DIR" ccg-mcp; then
+if claude mcp add ccg --scope user --transport stdio -- uvx --refresh --from git+https://github.com/FredericMN/Coder-Codex-Gemini.git ccg-mcp; then
     write_success "MCP server registered"
 else
     write_error "Failed to register MCP server"

@@ -191,37 +191,46 @@ uv --version
 
 > **提示**：如果遇到 "命令不存在" 错误，请检查 PATH 配置是否正确。
 
-### 2. 安装 MCP 服务器（推荐本地安装）
+### 2. 安装 MCP 服务器
 
-为了使用本项目的核心功能（Skills 工作流指导），**强烈推荐采用本地安装**方式。
+#### 远程安装（推荐）
 
-**第一步：获取代码**
+一键脚本默认使用远程安装方式，无需额外操作。如需手动安装：
+
 ```bash
-git clone https://github.com/FredericMN/Coder-Codex-Gemini.git
-cd Coder-Codex-Gemini
+claude mcp add ccg -s user --transport stdio -- uvx --refresh --from git+https://github.com/FredericMN/Coder-Codex-Gemini.git ccg-mcp
 ```
 
-**第二步：安装依赖**
+#### 本地安装（仅开发调试）
+
+如需修改源码或调试，可使用本地安装：
+
 ```bash
+# 进入项目目录
+cd /path/to/Coder-Codex-Gemini
+
+# 安装依赖
 uv sync
-```
 
-**第三步：注册 MCP 服务器**
-```bash
-# 获取当前目录的绝对路径 (Windows)
-$pwd = Get-Location
+# 注册 MCP 服务器（使用本地路径）
+# Windows
 claude mcp add ccg -s user --transport stdio -- uv run --directory $pwd ccg-mcp
 
-# 获取当前目录的绝对路径 (macOS/Linux)
+# macOS/Linux
 claude mcp add ccg -s user --transport stdio -- uv run --directory $(pwd) ccg-mcp
 ```
 
-> **备选方案：远程快速体验（无 Skills）**
-> 
-> 如果您不想下载代码，可以使用远程安装（但**无法使用 Skills** 工作流指导功能，体验会打折）：
-> ```bash
-> claude mcp add ccg -s user --transport stdio -- uvx --refresh --from git+https://github.com/FredericMN/Coder-Codex-Gemini.git ccg-mcp
-> ```
+#### 远程安装 vs 本地安装
+
+| 特性 | 远程安装（推荐） | 本地安装 |
+|------|-----------------|---------|
+| **稳定性** | ✅ 每次独立拉取，无文件锁定问题 | ⚠️ 多终端并发可能冲突 |
+| **适用场景** | 日常使用 | 开发调试 |
+| **Skills 支持** | 需手动安装到 `~/.claude/skills/` | 需手动安装（或使用一键脚本） |
+| **更新方式** | 自动获取最新版本 | 需手动 `git pull` |
+| **依赖要求** | 需要 `git` 命令 | 仅需 `uv` |
+
+> **⚠️ 注意**：本地安装时，如果多个终端同时调用 MCP，可能因文件锁定导致"MCP 无响应"。建议日常使用远程安装方式。
 
 **卸载 MCP 服务器**
 ```bash
@@ -286,6 +295,7 @@ cp -r skills/gemini-collaboration ~/.claude/skills/
   > "这是一个简单的[描述]任务，我判断无需调用 Coder/Codex。是否同意？等待您的确认。"
 - **违规即终止**：未经确认跳过 Coder 执行或 Codex 审核 = **流程违规**
 - **会话复用**：始终保存 `SESSION_ID` 保持上下文
+- **SESSION_ID 管理规范**：各角色（Coder/Codex/Gemini）的 SESSION_ID 相互独立，必须使用 MCP 工具响应返回的实际 SESSION_ID 值，严禁自创 ID 或混用不同角色的 ID
 
 ## ⚠️ Skill 阅读前置条件（强制）
 

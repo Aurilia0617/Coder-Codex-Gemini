@@ -159,14 +159,18 @@ chmod +x setup.sh && ./setup.sh
 
 ### 2. Install MCP Server
 
-**Option 1: Remote Installation (Recommended)**
+#### Remote Installation (Recommended)
+
+One-click scripts use remote installation by default. For manual installation:
+
 ```bash
 claude mcp add ccg -s user --transport stdio -- uvx --refresh --from git+https://github.com/FredericMN/Coder-Codex-Gemini.git ccg-mcp
 ```
 
-**Option 2: Local Installation (Development/Debug)**
+#### Local Installation (Development Only)
 
-If you've cloned the repository locally:
+For source code modification or debugging:
+
 ```bash
 # Enter project directory
 cd /path/to/Coder-Codex-Gemini
@@ -175,8 +179,24 @@ cd /path/to/Coder-Codex-Gemini
 uv sync
 
 # Register MCP server (using local path)
-claude mcp add ccg -s user --transport stdio -- uv run --directory /path/to/Coder-Codex-Gemini ccg-mcp
+# Windows
+claude mcp add ccg -s user --transport stdio -- uv run --directory $pwd ccg-mcp
+
+# macOS/Linux
+claude mcp add ccg -s user --transport stdio -- uv run --directory $(pwd) ccg-mcp
 ```
+
+#### Remote vs Local Installation
+
+| Feature | Remote (Recommended) | Local |
+|---------|---------------------|-------|
+| **Stability** | ✅ Independent fetch, no file locking | ⚠️ Multi-terminal conflicts possible |
+| **Use Case** | Daily usage | Development/Debug |
+| **Skills Support** | Manual install to `~/.claude/skills/` | Manual install (or use one-click script) |
+| **Updates** | Auto-fetches latest version | Manual `git pull` required |
+| **Dependencies** | Requires `git` command | Only `uv` required |
+
+> **⚠️ Note**: With local installation, multiple terminals calling MCP simultaneously may cause "MCP unresponsive" due to file locking. Remote installation is recommended for daily use.
 
 **Uninstall MCP Server**
 ```bash
@@ -241,6 +261,7 @@ Add mandatory rules to `~/.claude/CLAUDE.md` to ensure Claude follows the collab
   > "This is a simple [description] task, I judge Coder/Codex is not needed. Do you agree? Waiting for your confirmation."
 - **Violation = Termination**: Skipping Coder execution or Codex review without confirmation = **workflow violation**
 - **Session Reuse**: Always save `SESSION_ID` to maintain context
+- **SESSION_ID Management**: Each role (Coder/Codex/Gemini) has independent SESSION_IDs. Always use the actual SESSION_ID returned by MCP tool responses. Never create IDs manually or mix IDs across different roles
 
 ## ⚠️ Skill Reading Prerequisite (Mandatory)
 

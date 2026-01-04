@@ -10,6 +10,7 @@
   > "这是一个简单的[描述]任务，我判断无需调用 Coder/Codex。是否同意？等待您的确认。"
 - **违规即终止**：未经确认跳过 Coder 执行或 Codex 审核 = **流程违规**
 - **会话复用**：始终保存 `SESSION_ID` 保持上下文
+- **SESSION_ID 管理规范**：各角色（Coder/Codex/Gemini）的 SESSION_ID 相互独立，必须使用 MCP 工具响应返回的实际 SESSION_ID 值，严禁自创 ID 或混用不同角色的 ID
 
 ## ⚠️ Skill 阅读前置条件（强制）
 

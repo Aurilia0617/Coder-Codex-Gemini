@@ -95,7 +95,7 @@ try {
 }
 
 try {
-    claude mcp add ccg --scope user --transport stdio -- uv run --directory "$PSScriptRoot" ccg-mcp
+    claude mcp add ccg --scope user --transport stdio -- uvx --refresh --from git+https://github.com/FredericMN/Coder-Codex-Gemini.git ccg-mcp
     Write-Success "MCP server registered"
 } catch {
     Write-ErrorMsg "Failed to register MCP server"
