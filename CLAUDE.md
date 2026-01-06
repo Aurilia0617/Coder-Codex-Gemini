@@ -40,13 +40,16 @@ Coder-Codex-Gemini/
 ├── skills/                   # Skills 工作流指导
 │   ├── ccg-workflow/         # CCG 协作流程
 │   └── gemini-collaboration/ # Gemini 协作指南
-├── docs/                     # 设计文档
-│   ├── ccg-mcp-plan.md       # 完整技术方案
-│   ├── brainstorm.md         # 头脑风暴记录
-│   └── README.md             # 项目概述
-├── reference/codexmcp/       # 参考实现
+├── templates/                # 模板文件
+│   └── ccg-global-prompt.md  # 全局 CLAUDE.md 模板
+├── cases/                    # 实测案例
 ├── pyproject.toml
 ├── config.example.toml       # 配置文件示例
+├── setup.sh                  # Unix/macOS 安装脚本
+├── setup.ps1                 # Windows PowerShell 安装脚本
+├── setup.bat                 # Windows 批处理入口
+├── README.md                 # 项目说明（中文）
+├── README_EN.md              # 项目说明（英文）
 └── CLAUDE.md                 # 本文件
 ```
 
