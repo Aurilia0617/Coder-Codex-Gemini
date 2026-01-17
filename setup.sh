@@ -99,7 +99,7 @@ fi
 if [ "$USE_REFRESH" = true ]; then
     # Try with --refresh first (disable set -e for this block)
     set +e
-    REFRESH_OUTPUT=$(claude mcp add ccg --scope user --transport stdio -- uvx --refresh --from git+https://github.com/FredericMN/Coder-Codex-Gemini.git ccg-mcp 2>&1)
+    REFRESH_OUTPUT=$(claude mcp add ccg --scope user --transport stdio -- uvx --refresh --from git+https://github.com/Aurilia0617/Coder-Codex-Gemini.git ccg-mcp 2>&1)
     REFRESH_EXIT_CODE=$?
     set -e
 
@@ -110,7 +110,7 @@ if [ "$USE_REFRESH" = true ]; then
         # Fallback: --refresh was rejected (covers various CLI error message formats), try without it
         write_warning "--refresh option was rejected, falling back to installation without --refresh..."
         set +e
-        FALLBACK_OUTPUT=$(claude mcp add ccg --scope user --transport stdio -- uvx --from git+https://github.com/FredericMN/Coder-Codex-Gemini.git ccg-mcp 2>&1)
+        FALLBACK_OUTPUT=$(claude mcp add ccg --scope user --transport stdio -- uvx --from git+https://github.com/Aurilia0617/Coder-Codex-Gemini.git ccg-mcp 2>&1)
         FALLBACK_EXIT_CODE=$?
         set -e
         if [ $FALLBACK_EXIT_CODE -eq 0 ]; then
@@ -133,7 +133,7 @@ else
     write_warning "Consider upgrading uv: curl -LsSf https://astral.sh/uv/install.sh | sh"
 
     set +e
-    FALLBACK_OUTPUT=$(claude mcp add ccg --scope user --transport stdio -- uvx --from git+https://github.com/FredericMN/Coder-Codex-Gemini.git ccg-mcp 2>&1)
+    FALLBACK_OUTPUT=$(claude mcp add ccg --scope user --transport stdio -- uvx --from git+https://github.com/Aurilia0617/Coder-Codex-Gemini.git ccg-mcp 2>&1)
     FALLBACK_EXIT_CODE=$?
     set -e
     if [ $FALLBACK_EXIT_CODE -eq 0 ]; then

@@ -20,6 +20,8 @@ from typing import Annotated, Any, Dict, Generator, Iterator, List, Literal, Opt
 
 from pydantic import Field
 
+from ..config import get_gemini_model
+
 
 # ============================================================================
 # 错误类型定义
@@ -635,8 +637,8 @@ async def gemini_tool(
     return_metrics: Annotated[bool, "是否在返回值中包含指标数据"] = False,
     model: Annotated[
         str,
-        Field(description="指定模型版本"),
-    ] = "gemini-3-pro-preview",
+        Field(description="指定模型版本，空字符串时从配置文件读取"),
+    ] = "",
     timeout: Annotated[
         int,
         Field(description="空闲超时（秒），无输出超过此时间触发超时，默认 300 秒"),
@@ -692,8 +694,8 @@ async def gemini_tool(
             # read-only 需要启用 sandbox
             cmd.append("--sandbox")
 
-    # 指定模型（默认使用 gemini-3-pro-preview）
-    model_to_use = model if model else "gemini-3-pro-preview"
+    # 指定模型：优先使用参数，否则从配置读取
+    model_to_use = model if model else get_gemini_model()
     cmd.extend(["--model", model_to_use])
 
     # 会话恢复

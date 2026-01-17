@@ -21,6 +21,8 @@ from typing import Annotated, Any, Dict, Generator, Iterator, List, Literal, Opt
 
 from pydantic import Field
 
+from ..config import get_codex_model
+
 
 # ============================================================================
 # 错误类型定义
@@ -639,8 +641,8 @@ async def codex_tool(
     ] = None,
     model: Annotated[
         str,
-        Field(description="指定模型"),
-    ] = "gpt-5.2-codex",
+        Field(description="指定模型，空字符串时从配置文件读取"),
+    ] = "",
     yolo: Annotated[
         bool,
         Field(description="无需审批运行所有命令（跳过沙箱）"),
@@ -678,14 +680,17 @@ async def codex_tool(
     # 归一化可选参数
     image_list = image or []
 
+    # 获取模型：优先使用参数，否则从配置读取
+    model_to_use = model if model else get_codex_model()
+
     # 构建命令（shell=False 时不需要转义）
     cmd = ["codex", "exec", "--sandbox", sandbox, "--cd", str(cd), "--json"]
 
     if image_list:
         cmd.extend(["--image", ",".join(str(p) for p in image_list)])
 
-    if model:
-        cmd.extend(["--model", model])
+    if model_to_use:
+        cmd.extend(["--model", model_to_use])
 
     if profile:
         cmd.extend(["--profile", profile])

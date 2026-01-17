@@ -65,6 +65,12 @@ model = "glm-4.7"  # 示例：GLM-4.7，可替换为其他模型
 # 可选：额外环境变量
 [coder.env]
 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1"
+
+[codex]
+model = "gpt-5.2-codex"  # 可选，默认 gpt-5.2-codex
+
+[gemini]
+model = "gemini-3-pro-preview"  # 可选，默认 gemini-3-pro-preview
 '''
 
     raise ConfigError(
@@ -154,3 +160,48 @@ def reset_config_cache() -> None:
     """重置配置缓存（主要用于测试）"""
     global _config_cache
     _config_cache = None
+
+
+def get_coder_model() -> str:
+    """获取 Coder 默认模型
+
+    优先级：配置文件 coder.model > 默认值 "gpt-5.2-codex"
+
+    Returns:
+        模型名称
+    """
+    try:
+        config = get_config()
+        return config.get("coder", {}).get("model", "gpt-5.2-codex")
+    except ConfigError:
+        return "gpt-5.2-codex"
+
+
+def get_codex_model() -> str:
+    """获取 Codex 默认模型
+
+    优先级：配置文件 codex.model > 默认值 "gpt-5.2-codex"
+
+    Returns:
+        模型名称
+    """
+    try:
+        config = get_config()
+        return config.get("codex", {}).get("model", "gpt-5.2-codex")
+    except ConfigError:
+        return "gpt-5.2-codex"
+
+
+def get_gemini_model() -> str:
+    """获取 Gemini 默认模型
+
+    优先级：配置文件 gemini.model > 默认值 "gemini-3-pro-preview"
+
+    Returns:
+        模型名称
+    """
+    try:
+        config = get_config()
+        return config.get("gemini", {}).get("model", "gemini-3-pro-preview")
+    except ConfigError:
+        return "gemini-3-pro-preview"
