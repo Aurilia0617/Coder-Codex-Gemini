@@ -447,7 +447,7 @@ def _is_retryable_error(error_kind: Optional[str], err_message: str) -> bool:
 
 
 # ============================================================================
-# Coder System Prompt (通过 --instructions 注入)
+# Coder System Prompt (通过 -c developer_instructions 注入)
 # ============================================================================
 
 CODER_SYSTEM_PROMPT = """你是一个专注高效的代码执行助手。
@@ -528,7 +528,7 @@ async def coder_tool(
     cmd = ["codex", "exec", "--sandbox", sandbox, "--cd", str(cd), "--json"]
 
     # 添加自定义指令
-    cmd.extend(["--instructions", CODER_SYSTEM_PROMPT])
+    cmd.extend(["-c", f"developer_instructions={json.dumps(CODER_SYSTEM_PROMPT)}"])
 
     if image_list:
         cmd.extend(["--image", ",".join(str(p) for p in image_list)])
