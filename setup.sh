@@ -224,79 +224,6 @@ else
 fi
 
 # ==============================================================================
-# Step 6: Configure Coder
-# ==============================================================================
-write_step "Step 6: Configuring Coder..."
-
-CONFIG_DIR="$HOME/.ccg-mcp"
-CONFIG_PATH="$CONFIG_DIR/config.toml"
-
-# Create config directory if it doesn't exist
-mkdir -p "$CONFIG_DIR"
-
-# Check if config already exists
-if [ -f "$CONFIG_PATH" ]; then
-    write_warning "Config file already exists at $CONFIG_PATH"
-    read -p "Overwrite? (y/N): " OVERWRITE
-    if [ "$OVERWRITE" != "y" ] && [ "$OVERWRITE" != "Y" ]; then
-        write_warning "Skipping Coder configuration"
-        # Jump to Done
-        echo ""
-        echo -e "${GREEN}============================================================${NC}"
-        write_success "CCG setup completed successfully!"
-        echo -e "${GREEN}============================================================${NC}"
-        echo ""
-        echo "Next steps:"
-        echo "  1. Restart Claude Code CLI"
-        echo "  2. Verify MCP server: claude mcp list"
-        echo "  3. Check available skills: /ccg-workflow"
-        echo ""
-        exit 0
-    fi
-fi
-
-# Prompt for API Token (hidden input)
-read -s -p "Enter your API Token: " API_TOKEN
-echo
-if [ -z "$API_TOKEN" ]; then
-    write_error "API Token is required"
-    exit 1
-fi
-
-# Prompt for Base URL (optional)
-read -p "Enter Base URL (default: https://open.bigmodel.cn/api/anthropic): " BASE_URL
-if [ -z "$BASE_URL" ]; then
-    BASE_URL="https://open.bigmodel.cn/api/anthropic"
-fi
-
-# Prompt for Model (optional)
-read -p "Enter Model (default: glm-4.7): " MODEL
-if [ -z "$MODEL" ]; then
-    MODEL="glm-4.7"
-fi
-
-# Escape special characters for TOML string values (backslash and double quote)
-SAFE_API_TOKEN=$(printf '%s' "$API_TOKEN" | sed 's/\\/\\\\/g; s/"/\\"/g')
-SAFE_BASE_URL=$(printf '%s' "$BASE_URL" | sed 's/\\/\\\\/g; s/"/\\"/g')
-SAFE_MODEL=$(printf '%s' "$MODEL" | sed 's/\\/\\\\/g; s/"/\\"/g')
-
-# Generate config.toml
-cat > "$CONFIG_PATH" << EOF
-[coder]
-api_token = "$SAFE_API_TOKEN"
-base_url = "$SAFE_BASE_URL"
-model = "$SAFE_MODEL"
-
-[coder.env]
-CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1"
-EOF
-
-# Set file permissions - only current user can read/write
-chmod 600 "$CONFIG_PATH"
-
-write_success "Coder configuration saved to $CONFIG_PATH"
-
-# ==============================================================================
 # Done!
 # ==============================================================================
 echo ""
@@ -309,4 +236,7 @@ echo "Next steps:"
 echo "  1. Restart Claude Code CLI"
 echo "  2. Verify MCP server: claude mcp list"
 echo "  3. Check available skills: /ccg-workflow"
+echo ""
+echo "Optional: Create ~/.ccg-mcp/config.toml to customize default models"
+echo "  See config.example.toml for reference"
 echo ""

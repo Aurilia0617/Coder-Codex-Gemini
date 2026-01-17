@@ -21,7 +21,7 @@ from typing import Annotated, Any, Dict, Generator, Iterator, List, Literal, Opt
 
 from pydantic import Field
 
-from ..config import build_coder_env, get_coder_model
+from ..config import get_coder_model
 
 
 # ============================================================================
