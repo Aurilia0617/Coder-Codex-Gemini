@@ -639,8 +639,8 @@ async def codex_tool(
     ] = None,
     model: Annotated[
         str,
-        Field(description="指定模型，默认使用 Codex 自己的配置"),
-    ] = "",
+        Field(description="指定模型"),
+    ] = "gpt-5.2-codex",
     yolo: Annotated[
         bool,
         Field(description="无需审批运行所有命令（跳过沙箱）"),

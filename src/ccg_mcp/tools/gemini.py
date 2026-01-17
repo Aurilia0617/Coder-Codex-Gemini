@@ -636,7 +636,7 @@ async def gemini_tool(
     model: Annotated[
         str,
         Field(description="指定模型版本"),
-    ] = "",
+    ] = "gemini-3-pro-preview",
     timeout: Annotated[
         int,
         Field(description="空闲超时（秒），无输出超过此时间触发超时，默认 300 秒"),
